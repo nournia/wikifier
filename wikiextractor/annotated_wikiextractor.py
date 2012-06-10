@@ -91,7 +91,7 @@ JSON format.
 class AnnotatedWikiExtractor (wikiextractor.WikiExtractor):
 
     def __init__(self):
-        wikiextractor.prefix = 'http://en.wikipedia.org/wiki/'
+        wikiextractor.prefix = 'wiki/'
         wikiextractor.WikiExtractor.__init__(self)
 
     def extract(self, wiki_document):
@@ -111,9 +111,9 @@ class AnnotatedWikiExtractor (wikiextractor.WikiExtractor):
         for m in ms:              
             if urllib.quote("#") not in m.group(1) or keep_anchors:
                 annotations.append({
-                    "uri"    :   m.group(1), 
-                    "surface_form" :   m.group(2), 
-                    "offset"  :   m.start() - deltaStringLength
+                    "u"    :   m.group(1), 
+                    "s" :   m.group(2), 
+                    "o"  :   m.start() - deltaStringLength
                 })
             
             deltaStringLength += len(m.group(0)) - len(m.group(2))
