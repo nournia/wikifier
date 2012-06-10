@@ -91,7 +91,7 @@ JSON format.
 class AnnotatedWikiExtractor (wikiextractor.WikiExtractor):
 
     def __init__(self):
-        wikiextractor.prefix = 'wiki/'
+        wikiextractor.prefix = ''
         wikiextractor.WikiExtractor.__init__(self)
 
     def extract(self, wiki_document):
