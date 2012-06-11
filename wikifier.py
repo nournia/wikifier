@@ -1,6 +1,5 @@
 import os, json, collections
 
-commonness = collections.defaultdict(lambda: 0)
 translations = {}
 links = collections.defaultdict(lambda: [])
 sources = collections.defaultdict(lambda: [])
@@ -12,9 +11,6 @@ def processArticle(article):
 
 	for link in article['annotations']:
 		
-		# measuring commonness of links
-		commonness[link['u']] += 1
-
 		# index links of a phrase
 		links[link['s'].lower()].append(link['u'])
 
