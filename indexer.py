@@ -1,4 +1,5 @@
-import os, json, collections
+import Wikipedia as wiki
+import json, collections
 
 translations = {}
 links = collections.defaultdict(lambda: [])
@@ -20,14 +21,9 @@ def processArticle(article):
 		# index destinations of an article
 		destinations[article['url']].append(link['u'])
 
-# loop through wiki files
-for root, dirs, files in os.walk('data/articles'):
-	for name in files:
-		file = open(os.path.join(root, name))
-		for line in file:
-			article = json.loads(line)
-			processArticle(article)
-
+# loop through articles
+for article in wiki.Wikipedia('data/articles'):
+	processArticle(article)
 
 # translate indexes
 def translate(dictionary):

@@ -1,4 +1,4 @@
-import os, json
+import Wikipedia as wiki
 
 def augment(article):
 	""" augment each linked phrase in article with it's commonness, relatedness and context_quality
@@ -19,10 +19,6 @@ def disambiguate(article):
 	augment(article)
 
 
-# loop through wiki files
-for root, dirs, files in os.walk('data/articles'):
-	for name in files:
-		file = open(os.path.join(root, name))
-		for line in file:
-			article = json.loads(line)
-			disambiguate(article)
+# loop through articles
+for article in wiki.Wikipedia('data/articles'):
+	disambiguate(article)
