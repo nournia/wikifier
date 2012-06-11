@@ -34,23 +34,12 @@ def translate(dictionary):
 	
 	return list2dict(map(trans, dict2list(dictionary)))
 
-tlinks = translate(links)
-tsources = translate(sources)
-tdestinations = translate(destinations)
+links = translate(links)
+sources = translate(sources)
+destinations = translate(destinations)
 
 # write indexes
-output = open('data/translations.txt', 'w')
-output.write(json.dumps(translations))
-output.close()
-
-output = open('data/links.txt', 'w')
-output.write(json.dumps(tlinks))
-output.close()
-
-output = open('data/destinations.txt', 'w')
-output.write(json.dumps(tdestinations))
-output.close()
-
-output = open('data/sources.txt', 'w')
-output.write(json.dumps(tsources))
-output.close()
+json.dump(translations, open('data/translations.txt', 'w'))
+json.dump(links, open('data/links.txt', 'w'))
+json.dump(sources, open('data/sources.txt', 'w'))
+json.dump(destinations, open('data/destinations.txt', 'w'))

@@ -1,4 +1,11 @@
 import Wikipedia as wiki
+import json
+
+# read indexes
+translations = json.load(open('data/translations.txt'))
+links = json.load(open('data/links.txt'))
+sources = json.load(open('data/sources.txt'))
+destinations = json.load(open('data/destinations.txt'))
 
 def augment(article):
 	""" augment each linked phrase in article with it's commonness, relatedness and context_quality
