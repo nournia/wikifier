@@ -2,7 +2,7 @@ import Wikipedia as wiki
 import json, collections
 
 translations = {}
-links = collections.defaultdict(lambda: [])
+links = collections.defaultdict(lambda: collections.defaultdict(lambda: 0))
 sources = collections.defaultdict(lambda: [])
 destinations = collections.defaultdict(lambda: [])
 
@@ -13,7 +13,7 @@ def processArticle(article):
 	for link in article['annotations']:
 		
 		# index links of a phrase
-		links[link['s'].lower()].append(link['u'])
+		links[link['s'].lower()][link['u']] += 1
 
 		# index sources of an article
 		sources[link['u']].append(article['url'])
@@ -29,12 +29,12 @@ for article in wiki.Wikipedia('data/articles'):
 def translate(dictionary):
 	dict2list = lambda dic: [(k, v) for (k, v) in dic.iteritems()]
 	list2dict = lambda lis: dict(lis)
-	trans = lambda item: (item[0], [translations[x] for x in item[1] if x in translations])
+	trans = lambda item: (item[0], list(set([translations[x] for x in item[1] if x in translations])))
 	# trans = lambda item: (item[0], [translations[x] if x in translations else -1 for x in item[1]])
 	
 	return list2dict(map(trans, dict2list(dictionary)))
 
-links = translate(links)
+# links = translate(links)
 sources = translate(sources)
 destinations = translate(destinations)
 
