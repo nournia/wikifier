@@ -5,7 +5,8 @@ from math import *
 # read indexes
 translations = json.load(open('data/translations.txt'))
 links = json.load(open('data/links.txt'))
-sources = json.load(open('data/sources.txt'))
+probabilities = json.load(open('data/probabilities.txt'))
+# sources = json.load(open('data/sources.txt'))
 destinations = json.load(open('data/destinations.txt'))
 
 def relatedness(a, b):
@@ -43,8 +44,8 @@ def augment(article):
 				relatednesses.append(relatedness(link['u'], link2['u']))
 		avg_relatedness = avg(relatednesses)
 
-		# link_probabity effect
-		link['weight'] = avg([avg_relatedness, link_probability[link['s']]])
+		# link probability effect
+		link['weight'] = avg([avg_relatedness, probabilities[link['s'].lower()]])
 	
 	for annotation in article['annotations']:
 		choices = {}
