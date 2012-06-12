@@ -8,6 +8,21 @@ links = json.load(open('data/links.txt'))
 sources = json.load(open('data/sources.txt'))
 destinations = json.load(open('data/destinations.txt'))
 
+def relatedness(a, b):
+	""" link-based semantic relatedness between two articles which only considers incoming links following original paper
+
+	a, b: article
+	returns relatedness of them
+	"""
+	
+	if (a not in destinations) or (b not in destinations): return 0
+
+	A, B = set(destinations[a]), set(destinations[b])
+	W = log(len(translations))
+
+	#todo fix simple +1 solution for log(0) issue by reading relatedness article
+	return (log(max(len(A), len(B)) +1) - log(len(A & B) +1)) / (W - log(min(len(A), len(B)) +1))
+
 def augment(article):
 	""" augment each linked phrase in article with it's commonness, relatedness and context_quality
 
@@ -15,32 +30,18 @@ def augment(article):
 	returns whole article with augmented links
 	"""
 
-	def relatedness(a, b):
-		""" link-based semantic relatedness between two articles
-		only considers incoming links following original paper
-
-		a, b: article
-		returns relatedness
-		"""
-		
-		if (a not in destinations) or (b not in destinations):
-			return 0
-
-		A, B = set(destinations[a]), set(destinations[b])
-
-		W = log(len(translations))
-		#todo fix log(len(A & B)) issue by reading relatedness article
-		return (log(max(len(A), len(B))) - log(len(A & B) + 1)) / (W - log(min(len(A), len(B))))
+	# links without ambiguity in context (document)
+	clear_links = filter(lambda annotation: len(links[annotation['s'].lower()]) == 1, article['annotations'])
 
 	for annotation in article['annotations']:
 		choices = {}
 
-		alinks = links[annotation['s'].lower()]
-		count = float(sum(alinks.values()))
+		candidate_links = links[annotation['s'].lower()]
+		all_count = float(sum(candidate_links.values()))
 
-		for link, c in alinks.items():
+		for link, count in candidate_links.items():
 			choices[link] = {
-				'commonness': c / count,
+				'commonness': count / all_count,
 				'relatedness': relatedness(article['url'], link)
 			}
 
