@@ -33,6 +33,19 @@ def augment(article):
 	# links without ambiguity in context (document)
 	clear_links = filter(lambda annotation: len(links[annotation['s'].lower()]) == 1, article['annotations'])
 
+	avg = lambda l: float(sum(l))/len(l)
+
+	# todo parallel weight calculation
+	for link in clear_links:
+		relatednesses = []
+		for link2 in clear_links:
+			if link != link2:
+				relatednesses.append(relatedness(link['u'], link2['u']))
+		avg_relatedness = avg(relatednesses)
+
+		# link_probabity effect
+		link['weight'] = avg([avg_relatedness, link_probability[link['s']]])
+	
 	for annotation in article['annotations']:
 		choices = {}
 
@@ -42,7 +55,7 @@ def augment(article):
 		for link, count in candidate_links.items():
 			choices[link] = {
 				'commonness': count / all_count,
-				'relatedness': relatedness(article['url'], link)
+				'relatedness': avg([clear_link['weight'] * relatedness(link, clear_link['u'])  for clear_link in clear_links]) # weighted average of link relatedness
 			}
 
 		annotation['choices'] = choices
