@@ -87,9 +87,9 @@ predict = disambiguator.predict(data)
 predict_proba = disambiguator.predict_proba(data)
 
 # mesurements on data
-tp = float((predicted[predicted == target] == True).sum())
-data_precision = tp / (predicted == True).sum()
-data_recall = tp / (target == True).sum()
+tp = float((predict[predict == target[:, 0]] == True).sum())
+data_precision = tp / (predict == True).sum()
+data_recall = tp / (target[:, 0] == True).sum()
 
 # fill results
 results = np.append(target, predict_proba, axis=1)
