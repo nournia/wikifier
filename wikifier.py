@@ -26,8 +26,10 @@ def relatedness(a, b):
 	A, B = set(destinations[a]), set(destinations[b])
 	W = log(len(translations))
 
-	#todo fix simple +1 solution for log(0) issue by reading relatedness article
-	return (log(max(len(A), len(B)) +1) - log(len(A & B) +1)) / (W - log(min(len(A), len(B)) +1))
+	intersection = len(A & B)
+	if not intersection: return 0
+
+	return (log(max(len(A), len(B))) - log(intersection)) / (W - log(min(len(A), len(B))))
 
 def features(article, data, target):
 	""" augment each linked phrase in article with it's commonness, relatedness and context_quality
