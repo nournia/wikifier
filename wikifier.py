@@ -12,6 +12,8 @@ destinations = json.load(open('data/destinations.txt'))
 
 avg = lambda l: float(sum(l))/len(l) if l else 0
 
+minimum_sense_probability = .02
+
 def relatedness(a, b):
 	""" link-based semantic relatedness between two articles which only considers incoming links following original paper
 
@@ -54,6 +56,9 @@ def features(article, data, target):
 		candidate_links = links[annotation['s'].lower()]
 		all_count = float(sum(candidate_links.values()))
 
+		# filter candidate_links with minimum_sense_probability
+		candidate_links = dict(filter(lambda (link, count): (count / all_count) > minimum_sense_probability, candidate_links.items()))
+		
 		# baseline_judgement as the most common link selection
 		if annotation['u'] == max(candidate_links): baseline_judgement += 1
 		
@@ -65,8 +70,6 @@ def features(article, data, target):
 			data.append([lcommonness, lrelatedness, lcontext_quality])
 			target.append([link == annotation['u'], annotation['o']])
 
-
-# todo use computed minimum sense probability described in section 3.2 of paper
 
 articles = [json.loads(article) for article in open('data/samples.txt')]
 train_size = int(len(articles) * .8)

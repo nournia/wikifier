@@ -42,11 +42,8 @@ for article in wiki.Wikipedia('data/articles'):
 
 # translate indexes
 def translate(dictionary):
-	dict2list = lambda dic: [(k, v) for (k, v) in dic.iteritems()]
-	list2dict = lambda lis: dict(lis)
 	trans = lambda item: (item[0], list(set([translations[x] for x in item[1] if x in translations])))
-	
-	return list2dict(map(trans, dict2list(dictionary)))
+	return dict(map(trans, dictionary.items()))
 
 # links = translate(links)
 for phrase in probabilities:
