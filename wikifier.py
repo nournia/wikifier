@@ -34,6 +34,8 @@ def features(article, data, target):
 	returns whole article with augmented links
 	"""
 
+	global baseline_judgement
+
 	# links without ambiguity in context (document)
 	clear_links = filter(lambda annotation: len(links[annotation['s'].lower()]) == 1, article['annotations'])
 
@@ -52,6 +54,9 @@ def features(article, data, target):
 		candidate_links = links[annotation['s'].lower()]
 		all_count = float(sum(candidate_links.values()))
 
+		# baseline_judgement as the most common link selection
+		if annotation['u'] == max(candidate_links): baseline_judgement += 1
+		
 		lcontext_quality = sum([clear_link['weight'] for clear_link in clear_links])
 		for link, count in candidate_links.items():
 			lcommonness = count / all_count
@@ -67,6 +72,7 @@ articles = [json.loads(article) for article in open('data/samples.txt')]
 train_size = int(len(articles) * .8)
 
 # train
+baseline_judgement = 0
 data, target = [], []
 for article in articles[:train_size]:
 	features(article, data, target)
@@ -77,6 +83,7 @@ disambiguator = GaussianNB()
 disambiguator.fit(data, target)
 
 # test
+baseline_judgement = 0
 data, target = [], []
 for article in articles[train_size:]:
 	features(article, data, target)
@@ -115,4 +122,6 @@ judgements = np.array(judgements)
 
 precision = 1 # that's it
 recall = float(judgements[:, 0].sum()) / len(judgements)
+baseline_recall = float(baseline_judgement) / len(judgements)
+
 # wrong judgements: judgements[judgements[:, 0] == 0]
