@@ -1,37 +1,27 @@
-import json
-from math import *
+import sys, json, math
 import numpy as np
 from sklearn.naive_bayes import GaussianNB
-from sklearn import cross_validation
+
+from relatedness import WLVM, ESA
+
+encyclopedic = True
+if len(sys.argv) == 2 and sys.argv[1] == 'content':
+	encyclopedic = False
+
+if encyclopedic:
+	relatedness_model = WLVM()
+else:
+	relatedness_model = ESA()
 
 # read indexes
 links = json.load(open('data/links.txt'))
 probability = json.load(open('data/probability.txt'))
-
 content = json.load(open('data/content.txt'))
-destinations = json.load(open('data/destinations.txt'))
 
 # constants
 minimum_sense_probability = .02
-W = log(len(content)) # count of all articles
 
 avg = lambda l: float(sum(l))/len(l) if l else 0
-
-def relatedness(a, b):
-	""" link-based semantic relatedness between two articles which only considers incoming links following original paper
-
-	a, b: article
-	returns relatedness of them
-	"""
-	
-	if (a not in destinations) or (b not in destinations): return 0
-
-	A, B = set(destinations[a]), set(destinations[b])
-	
-	intersection = len(A & B)
-	if not intersection: return 0
-
-	return (log(max(len(A), len(B))) - log(intersection)) / (W - log(min(len(A), len(B))))
 
 def features(article, data, target):
 	""" augment each linked phrase in article with it's commonness, relatedness and context_quality
@@ -50,7 +40,7 @@ def features(article, data, target):
 		relatednesses = []
 		for link2 in clear_links:
 			if link != link2:
-				relatednesses.append(relatedness(link['u'], link2['u']))
+				relatednesses.append(relatedness_model.relatedness(link['u'], link2['u']))
 		avg_relatedness = avg(relatednesses)
 
 		# link probability effect
@@ -66,12 +56,12 @@ def features(article, data, target):
 		# baseline_judgement as the most common link selection
 		if annotation['u'] == max(candidate_links): baseline_judgement += 1
 		
-		lcontext_quality = sum([clear_link['weight'] for clear_link in clear_links])
+		context_quality = sum([clear_link['weight'] for clear_link in clear_links])
 		for link, count in candidate_links.items():
-			lcommonness = count / all_count
-			lrelatedness = avg([clear_link['weight'] * relatedness(link, clear_link['u'])  for clear_link in clear_links]) # weighted average of link relatedness
+			commonness = count / all_count
+			relatedness = avg([clear_link['weight'] * relatedness_model.relatedness(link, clear_link['u'])  for clear_link in clear_links]) # weighted average of link relatedness
 
-			data.append([lcommonness, lrelatedness, lcontext_quality])
+			data.append([commonness, relatedness, context_quality])
 			target.append([link == annotation['u'], annotation['o']])
 
 
