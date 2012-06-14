@@ -5,14 +5,17 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn import cross_validation
 
 # read indexes
-translations = json.load(open('data/translations.txt'))
 links = json.load(open('data/links.txt'))
-probabilities = json.load(open('data/probabilities.txt'))
+probability = json.load(open('data/probability.txt'))
+
+content = json.load(open('data/content.txt'))
 destinations = json.load(open('data/destinations.txt'))
 
-avg = lambda l: float(sum(l))/len(l) if l else 0
-
+# constants
 minimum_sense_probability = .02
+W = log(len(content)) # count of all articles
+
+avg = lambda l: float(sum(l))/len(l) if l else 0
 
 def relatedness(a, b):
 	""" link-based semantic relatedness between two articles which only considers incoming links following original paper
@@ -24,8 +27,7 @@ def relatedness(a, b):
 	if (a not in destinations) or (b not in destinations): return 0
 
 	A, B = set(destinations[a]), set(destinations[b])
-	W = log(len(translations))
-
+	
 	intersection = len(A & B)
 	if not intersection: return 0
 
@@ -52,7 +54,7 @@ def features(article, data, target):
 		avg_relatedness = avg(relatednesses)
 
 		# link probability effect
-		link['weight'] = avg([avg_relatedness, probabilities[link['s'].lower()]])
+		link['weight'] = avg([avg_relatedness, probability[link['s'].lower()]])
 	
 	for annotation in article['annotations']:
 		candidate_links = links[annotation['s'].lower()]
