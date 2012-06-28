@@ -1,4 +1,4 @@
-import os, json
+import os, sys, json
 
 class Wikipedia:
 	def __init__(self, directory):
@@ -26,7 +26,8 @@ class Wikipedia:
 			else:
 				self.currentFile = open(self.files[self.fileId])
 				self.currentFile = [line for line in self.currentFile]
-				print self.files[self.fileId]
+				sys.stdout.write('.')
+				sys.stdout.flush()
 	
 		line = self.currentFile[self.lineId]
 		self.lineId += 1
