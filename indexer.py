@@ -3,18 +3,21 @@ import sys, json, collections
 
 def processArticle(article):
 	phrases = set([])
+	url = translation[article['url']]
 	for link in article['annotations']:
 		
 		phrase = link['s'].lower()
+		linkUrl = translation.get(link['u'])
+
 		phrases.add(phrase)
-		
-		# index links of a phrase
-		links[phrase][link['u']] += 1
 		probability[phrase] += 1
 
-		# index destinations of an article
-		if link['u'] in translation:
-			destinations[article['url']].add(translation[link['u']])
+		if linkUrl:
+			# index links of a phrase
+			links[phrase][linkUrl] += 1
+
+			# index destinations of an article
+			destinations[url].add(linkUrl)
 
 	# count occurances of phrase in text
 	text = article['text'].lower()
