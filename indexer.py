@@ -1,27 +1,7 @@
 import Wikipedia as wiki
-import json, collections
-
-# index by phrase
-links = collections.defaultdict(lambda: collections.defaultdict(lambda: 0))
-probability = collections.defaultdict(lambda: 0)
-occurances = collections.defaultdict(lambda: 0)
-
-# index by link
-content = {}
-translation = {}
-destinations = collections.defaultdict(lambda: [])
+import sys, json, collections
 
 def processArticle(article):
-
-	def extractContent(text):
-		content = ''
-		for line in text.split("\n")[1:]:
-			if len(line.split(' ')) < 5: break
-			content += line + ' '
-		return content[:-1] # skip last space
-
-	translation[article['url']] = article['id'][0]
-
 	phrases = set([])
 	for link in article['annotations']:
 		
@@ -33,32 +13,49 @@ def processArticle(article):
 		probability[phrase] += 1
 
 		# index destinations of an article
-		destinations[article['url']].append(link['u'])
+		if link['u'] in translation:
+			destinations[article['url']].add(translation[link['u']])
 
 	# count occurances of phrase in text
 	text = article['text'].lower()
-	content[article['url']] = extractContent(text)
 	for phrase in phrases:
 		occurances[phrase] += text.count(phrase)
 
-# loop through articles
-for article in wiki.Wikipedia('data/articles'):
-	processArticle(article)
+if len(sys.argv) > 1 and sys.argv[1] == 'translation':
 
-# translate indexes
-def translate(dictionary):
-	trans = lambda item: (item[0], list(set([translation[x] for x in item[1] if x in translation])))
-	return dict(map(trans, dictionary.items()))
+	# index translations
+	translation = {}
 
-for phrase in probability:
-	probability[phrase] = float(probability[phrase]) / occurances[phrase]
+	for article in wiki.Wikipedia('data/articles'):
+		translation[article['url']] = article['id'][0]
 
-destinations = translate(destinations)
+	json.dump(translation, open('data/translation.txt', 'w'))
 
-# write indexes
-json.dump(links, open('data/links.txt', 'w'))
-json.dump(probability, open('data/probability.txt', 'w'))
+else:
 
-json.dump(content, open('data/content.txt', 'w'))
-json.dump(translation, open('data/translation.txt', 'w'))
-json.dump(destinations, open('data/destinations.txt', 'w'))
+	# load translations index
+	translation = json.load(open('data/translation.txt'))
+
+	# indexed by phrase
+	links = collections.defaultdict(lambda: collections.defaultdict(lambda: 0))
+	probability = collections.defaultdict(lambda: 0)
+	occurances = collections.defaultdict(lambda: 0)
+
+	# indexed by link
+	destinations = collections.defaultdict(lambda: set([]))
+
+	# loop through articles
+	for article in wiki.Wikipedia('data/articles'):
+		processArticle(article)
+
+	# compute phrase probabilities
+	for phrase in probability:
+		probability[phrase] = float(probability[phrase]) / occurances[phrase]
+
+	for key, value in destinations.iteritems():
+		destinations[key] = list(value)
+
+	# write indexes
+	json.dump(links, open('data/links.txt', 'w'))
+	json.dump(probability, open('data/probability.txt', 'w'))
+	json.dump(destinations, open('data/destinations.txt', 'w'))

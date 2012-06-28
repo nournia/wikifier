@@ -16,7 +16,6 @@ else:
 # read indexes
 links = json.load(open('data/links.txt'))
 probability = json.load(open('data/probability.txt'))
-content = json.load(open('data/content.txt'))
 
 # constants
 minimum_sense_probability = .02
