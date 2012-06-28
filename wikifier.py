@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.naive_bayes import GaussianNB
 
 from relatedness import WLVM, ESA
+from indexer import loadTranslation, loadLinks
 
 encyclopedic = True
 if len(sys.argv) == 2 and sys.argv[1] == 'content':
@@ -14,8 +15,18 @@ else:
 	relatedness_model = ESA()
 
 # read indexes
-links = json.load(open('data/links.txt'))
-probability = json.load(open('data/probability.txt'))
+translation = loadTranslation()
+links = loadLinks()
+
+def getLinks(phrase):
+	phrase = phrase.lower()
+	if not phrase in links: return {}
+	result = links[phrase.lower()]
+	result.pop('', 0)
+	return result
+
+def getProbability(phrase):
+	return links[phrase.lower()].get('', 0)
 
 # constants
 minimum_sense_probability = .02
@@ -32,9 +43,12 @@ def features(article, data, target):
 	global baseline_judgement
 
 	# links without ambiguity in context (document)
-	clear_links = filter(lambda annotation: len(links[annotation['s'].lower()]) == 1, article['annotations'])
+	clear_links = filter(lambda annotation: len(getLinks(annotation['s'])) == 1 and annotation['u'] in translation, article['annotations'])
 
 	# todo parallel weight calculation
+	for link in clear_links:
+		link['u'] = translation[link['u']]
+
 	for link in clear_links:
 		relatednesses = []
 		for link2 in clear_links:
@@ -43,17 +57,17 @@ def features(article, data, target):
 		avg_relatedness = avg(relatednesses)
 
 		# link probability effect
-		link['weight'] = avg([avg_relatedness, probability[link['s'].lower()]])
+		link['weight'] = avg([avg_relatedness, getProbability(link['s'])])
 	
 	for annotation in article['annotations']:
-		candidate_links = links[annotation['s'].lower()]
+		candidate_links = getLinks(annotation['s'])
 		all_count = float(sum(candidate_links.values()))
 
 		# filter candidate_links with minimum_sense_probability
 		candidate_links = dict(filter(lambda (link, count): (count / all_count) > minimum_sense_probability, candidate_links.items()))
 		
 		# baseline_judgement as the most common link selection
-		if annotation['u'] == max(candidate_links): baseline_judgement += 1
+		# if len(candidate_links) and annotation['u'] == max(candidate_links): baseline_judgement += 1
 		
 		context_quality = sum([clear_link['weight'] for clear_link in clear_links])
 		for link, count in candidate_links.items():
@@ -61,7 +75,7 @@ def features(article, data, target):
 			relatedness = avg([clear_link['weight'] * relatedness_model.relatedness(link, clear_link['u'])  for clear_link in clear_links]) # weighted average of link relatedness
 
 			data.append([commonness, relatedness, context_quality])
-			target.append([link == annotation['u'], annotation['o']])
+			target.append([int(link) == annotation['u'], annotation['o']])
 
 
 articles = [json.loads(article) for article in open('data/samples.txt')]

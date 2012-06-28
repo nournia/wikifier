@@ -1,5 +1,5 @@
-import json
 from math import *
+from indexer import loadDestinations
 
 class WLVM:
 	""" computing semantic relatedness with Wikipedia Link Vector model """
@@ -7,10 +7,10 @@ class WLVM:
 	def __init__(self):
 		""" read indexes """
 
-		self._destinations = json.load(open('data/destinations.txt'))
+		self._destinations = loadDestinations()
 
 		# count of all articles
-		self._W = log(len(json.load(open('data/translation.txt'))))
+		self._W = log(len(self._destinations))
 
 
 	def relatedness(self, a, b):
@@ -20,6 +20,7 @@ class WLVM:
 		returns relatedness of them
 		"""
 
+		a, b = str(a), str(b)
 		if (a not in self._destinations) or (b not in self._destinations): return 0
 
 		A, B = set(self._destinations[a]), set(self._destinations[b])

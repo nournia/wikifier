@@ -7,11 +7,9 @@ def loadTranslation():
 def loadLinks():
 	return json.load(open(Wikipedia.directory + 'links.txt'))
 
-def loadProbability():
-	return json.load(open(Wikipedia.directory + 'probability.txt'))
-
 def loadDestinations():
 	return json.load(open(Wikipedia.directory + 'destinations.txt'))
+
 
 def indexTranslation():
 	
@@ -21,7 +19,6 @@ def indexTranslation():
 		translation[article['url']] = article['id'][0]
 
 	json.dump(translation, open(Wikipedia.directory + 'translation.txt', 'w'))
-
 
 def indexLinks():
 
@@ -49,7 +46,7 @@ def indexLinks():
 
 
 	# load translations index
-	translation = translation()
+	translation = loadTranslation()
 
 	# indexed by phrase
 	links = collections.defaultdict(lambda: collections.defaultdict(lambda: 0))
@@ -64,8 +61,8 @@ def indexLinks():
 		processArticle(article)
 
 	# compute phrase probabilities
-	for phrase in probability:
-		probability[phrase] = float(probability[phrase]) / occurances[phrase]
+	for phrase in links:
+		links[phrase][''] = round(float(probability[phrase]) / occurances[phrase], 2)
 
 	for key, value in destinations.iteritems():
 		destinations[key] = list(value)
@@ -73,4 +70,3 @@ def indexLinks():
 	# write indexes
 	json.dump(links, open(Wikipedia.directory + 'links.txt', 'w'))
 	json.dump(destinations, open(Wikipedia.directory + 'destinations.txt', 'w'))
-	json.dump(probability, open(Wikipedia.directory + 'probability.txt', 'w'))

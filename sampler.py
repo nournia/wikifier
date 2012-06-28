@@ -1,5 +1,5 @@
 from Wikipedia import Wikipedia
-from Indexer import *
+from indexer import loadDestinations
 import json, random
 
 destinations = loadDestinations() # 3647247
