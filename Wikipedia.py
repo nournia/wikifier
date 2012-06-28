@@ -10,6 +10,7 @@ class Wikipedia:
 
 		self.fileId = 0
 		self.lineId = 0
+		self.progress = 0
 		self.currentFile = open(self.files[self.fileId])
 		self.currentFile = [line for line in self.currentFile]
 
@@ -26,8 +27,13 @@ class Wikipedia:
 			else:
 				self.currentFile = open(self.files[self.fileId])
 				self.currentFile = [line for line in self.currentFile]
-				sys.stdout.write('.')
-				sys.stdout.flush()
+
+				# show progress
+				progress = int(100 * float(self.fileId) / len(self.files))
+				if progress > self.progress:
+					self.progress = progress
+					sys.stdout.write('.')
+					sys.stdout.flush()
 	
 		line = self.currentFile[self.lineId]
 		self.lineId += 1
