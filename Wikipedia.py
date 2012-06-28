@@ -1,9 +1,11 @@
 import os, sys, json
 
 class Wikipedia:
-	def __init__(self, directory):
+	directory = 'data/'
+
+	def __init__(self):
 		self.files = []
-		for root, dirs, files in os.walk(directory):
+		for root, dirs, files in os.walk(self.directory + 'articles'):
 			for name in files:
 				self.files.append(os.path.join(root, name))
 		self.files.sort()

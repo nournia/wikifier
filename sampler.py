@@ -1,15 +1,20 @@
-import Wikipedia as wiki
+from Wikipedia import Wikipedia
+from Indexer import *
 import json, random
 
-output = open('data/samples.txt', 'w')
+destinations = loadDestinations() # 3647247
 
-articles = []
-for article in wiki.Wikipedia('data/articles'):
-	if len(article['annotations']) > 100:
-		articles.append(article)
+minLinks = 100
+articles = [int(key) for key, value in destinations.items() if len(value) > minLinks] # 25097
 
-for article in random.sample(articles, 200):
-	print len(article['annotations']), article['url']
-	output.write(json.dumps(article) + "\n")
+samples = 1000
+articles = random.sample(articles, samples)
+
+output = open(Wikipedia.directory + 'samples.txt', 'w')
+
+for article in Wikipedia():
+	if article['id'][0] in articles:
+		print len(article['annotations']), article['url']
+		output.write(json.dumps(article) + "\n")
 
 output.close()
