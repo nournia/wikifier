@@ -26,6 +26,7 @@ class Wikipedia:
 			else:
 				self.currentFile = open(self.files[self.fileId])
 				self.currentFile = [line for line in self.currentFile]
+				print self.files[self.fileId]
 	
 		line = self.currentFile[self.lineId]
 		self.lineId += 1
