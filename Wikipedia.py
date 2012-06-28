@@ -9,24 +9,26 @@ class Wikipedia:
 		self.files.sort()
 
 		self.fileId = 0
-		self.lineId = 0
 		self.progress = 0
 		self.currentFile = open(self.files[self.fileId])
-		self.currentFile = [line for line in self.currentFile]
 
 	def __iter__(self):
 		return self
 
 	def next(self):
-		if self.lineId >= len(self.currentFile):
+
+		try:
+			line = 0
+			line = self.currentFile.next()
+
+		except StopIteration:
 			self.fileId += 1
-			self.lineId = 0
 
 			if self.fileId >= len(self.files):
 				raise StopIteration
 			else:
 				self.currentFile = open(self.files[self.fileId])
-				self.currentFile = [line for line in self.currentFile]
+				line = self.currentFile.next()
 
 				# show progress
 				progress = int(100 * float(self.fileId) / len(self.files))
@@ -34,8 +36,5 @@ class Wikipedia:
 					self.progress = progress
 					sys.stdout.write('.')
 					sys.stdout.flush()
-	
-		line = self.currentFile[self.lineId]
-		self.lineId += 1
 
 		return json.loads(line)
