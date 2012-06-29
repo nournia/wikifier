@@ -70,7 +70,7 @@ def features(article, data, target):
 		candidate_links = dict(filter(lambda (link, count): (count / all_count) > minimum_sense_probability, candidate_links.items()))
 		
 		# baseline_judgement as the most common link selection
-		# if len(candidate_links) and annotation['u'] == max(candidate_links): baseline_judgement += 1
+		if annotation['u'] == int(max(candidate_links)): baseline_judgement += 1
 		
 		context_quality = sum([clear_link['weight'] for clear_link in clear_links])
 		for link, count in candidate_links.items():
