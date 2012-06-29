@@ -1,8 +1,8 @@
 from Wikipedia import Wikipedia
-import json, collections
+import json, collections, shelve
 
 def loadTranslation():
-	return json.load(open(Wikipedia.directory + 'translation.txt'))
+	return shelve.open(Wikipedia.directory + 'translation.db', 'r')
 
 def loadLinks():
 	return json.load(open(Wikipedia.directory + 'links.txt'))
@@ -10,6 +10,12 @@ def loadLinks():
 def loadDestinations():
 	return json.load(open(Wikipedia.directory + 'destinations.txt'))
 
+def convertTranslation():
+	db = shelve.open(Wikipedia.directory + 'translation.db')
+	translation = json.load(open(Wikipedia.directory + 'translation.txt'))
+	for key, value in translation.iteritems():
+		db[key.encode('utf8')] = value
+	db.close()
 
 def indexTranslation():
 	
@@ -24,14 +30,14 @@ def indexLinks():
 
 	def processArticle(article):
 		phrases = set([])
-		url = translation[article['url']]
+		url = article['id'][0]
 		for link in article['annotations']:
 			
 			phrase = link['s'].lower()
 			phrases.add(phrase)
 			probability[phrase] += 1
 
-			linkUrl = translation.get(link['u'])
+			linkUrl = translation.get(link['u'].encode('utf8'))
 			if linkUrl:
 				# index links of a phrase
 				links[phrase][linkUrl] += 1
@@ -61,7 +67,7 @@ def indexLinks():
 		processArticle(article)
 
 	# compute phrase probabilities
-	for phrase in links:
+	for phrase in probability:
 		links[phrase][''] = round(float(probability[phrase]) / occurances[phrase], 2)
 
 	for key, value in destinations.iteritems():
