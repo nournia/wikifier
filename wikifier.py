@@ -106,31 +106,31 @@ train_size = int(len(articles) * .8)
 
 # train
 print 'Train'
-data, target = [], []
+data_train, target_train = [], []
 baseline_judgement = 0
-extract_features(articles[:train_size], data, target)
-target = np.array([t[0] for t in target], dtype=bool)
+extract_features(articles[:train_size], data_train, target_train)
+target_train = np.array([t[0] for t in target_train], dtype=bool)
 
 disambiguator = GaussianNB()
-disambiguator.fit(data, target)
+disambiguator.fit(data_train, target_train)
 
 # test
 print 'Test'
-data, target = [], []
+data_test, target_test = [], []
 baseline_judgement = 0
-extract_features(articles[train_size:], data, target)
-target = np.array(target)
+extract_features(articles[train_size:], data_test, target_test)
+target_test = np.array(target_test)
 
-predict = disambiguator.predict(data)
-predict_proba = disambiguator.predict_proba(data)
+predict = disambiguator.predict(data_test)
+predict_proba = disambiguator.predict_proba(data_test)
 
 # mesurements on data
-tp = float((predict[predict == target[:, 0]] == True).sum())
-data_precision = tp / (predict == True).sum()
-data_recall = tp / (target[:, 0] == True).sum()
+tp = float((predict[predict == target_test[:, 0]] == True).sum())
+classifier_precision = tp / (predict == True).sum()
+classifier_recall = tp / (target_test[:, 0] == True).sum()
 
 # fill results
-results = np.append(target, predict_proba, axis=1)
+results = np.append(target_test, predict_proba, axis=1)
 indices = []
 i, count = 0, 0
 last_offset = -1
@@ -158,6 +158,6 @@ baseline_recall = float(baseline_judgement) / len(judgements)
 print 'Results:'
 print 'Link Recall: %.2f' % recall
 print 'Baseline Recall: %.2f' % baseline_recall
-print 'Classifier - Precision: %.2f, Recall: %.2f' % (data_precision, data_recall)
+print 'Classifier - Precision: %.2f, Recall: %.2f' % (classifier_precision, classifier_recall)
 
 # wrong judgements: judgements[judgements[:, 0] == 0]
