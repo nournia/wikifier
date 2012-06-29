@@ -42,13 +42,16 @@ def features(article, data, target):
 
 	global baseline_judgement
 
+	annotations = []
+	for annotation in article['annotations']:
+		if annotation['u'].encode('utf8') in translation:
+			annotation['u'] = translation[annotation['u'].encode('utf8')]
+			annotations.append(annotation)
+
 	# links without ambiguity in featurecontext (document)
-	clear_links = filter(lambda annotation: len(getLinks(annotation['s'])) == 1 and annotation['u'].encode('utf8') in translation, article['annotations'])
+	clear_links = filter(lambda annotation: len(getLinks(annotation['s'])) == 1, annotations)
 
 	# todo parallel weight calculation
-	for link in clear_links:
-		link['u'] = translation[link['u'].encode('utf8')]
-
 	for link in clear_links:
 		relatednesses = []
 		for link2 in clear_links:
@@ -59,7 +62,7 @@ def features(article, data, target):
 		# link probability effect
 		link['weight'] = avg([avg_relatedness, getProbability(link['s'])])
 	
-	for annotation in article['annotations']:
+	for annotation in annotations:
 		candidate_links = getLinks(annotation['s'])
 		all_count = float(sum(candidate_links.values()))
 
