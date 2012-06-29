@@ -70,7 +70,7 @@ def features(article, data, target):
 		candidate_links = dict(filter(lambda (link, count): (count / all_count) > minimum_sense_probability, candidate_links.items()))
 		
 		# baseline_judgement as the most common link selection
-		if annotation['u'] == int(max(candidate_links)): baseline_judgement += 1
+		if len(candidate_links) and annotation['u'] == int(max(candidate_links)): baseline_judgement += 1
 		
 		context_quality = sum([clear_link['weight'] for clear_link in clear_links])
 		for link, count in candidate_links.items():
@@ -97,6 +97,7 @@ def extract_features(articles, data, target):
 			sys.stdout.flush()
 
 	data = np.array(data, dtype=float)
+	print ';'
 
 # load articles
 total_size = 1000
@@ -110,7 +111,6 @@ baseline_judgement = 0
 extract_features(articles[:train_size], data, target)
 target = np.array([t[0] for t in target], dtype=bool)
 
-print 'Fit'
 disambiguator = GaussianNB()
 disambiguator.fit(data, target)
 
