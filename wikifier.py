@@ -80,34 +80,45 @@ def features(article, data, target):
 			data.append([commonness, relatedness, context_quality])
 			target.append([int(link) == annotation['u'], annotation['o']])
 
-	# show progress bar
-	sys.stdout.write('.')
-	sys.stdout.flush()
 
+
+def extract_features(articles, data, target):
+	size, progress = float(len(articles)), 0
+	for i, article in enumerate(articles):
+
+		# extract features from article
+		features(json.loads(article), data, target)
+
+		# show progress bar
+		p = int(100 * i / size)
+		if p > progress:
+			progress = p
+			sys.stdout.write('.')
+			sys.stdout.flush()
+
+	data = np.array(data, dtype=float)
 
 # load articles
-articles = [json.loads(article) for article in open('data/samples.txt')]
+total_size = 1000
+articles = [article for article in open('data/samples.txt')]
 train_size = int(len(articles) * .8)
 
 # train
-print '\nTraining ',
-baseline_judgement = 0
+print 'Train'
 data, target = [], []
-for article in articles[:train_size]:
-	features(article, data, target)
-data = np.array(data, dtype=float)
+baseline_judgement = 0
+extract_features(articles[:train_size], data, target)
 target = np.array([t[0] for t in target], dtype=bool)
 
+print 'Fit'
 disambiguator = GaussianNB()
 disambiguator.fit(data, target)
 
 # test
-print '\nTesting ',
-baseline_judgement = 0
+print 'Test'
 data, target = [], []
-for article in articles[train_size:]:
-	features(article, data, target)
-data = np.array(data, dtype=float)
+baseline_judgement = 0
+extract_features(articles[train_size:], data, target)
 target = np.array(target)
 
 predict = disambiguator.predict(data)
@@ -144,7 +155,7 @@ precision = 1 # that's it
 recall = float(judgements[:, 0].sum()) / len(judgements)
 baseline_recall = float(baseline_judgement) / len(judgements)
 
-print '\nResults:'
+print 'Results:'
 print 'Link Recall: %.2f' % recall
 print 'Baseline Recall: %.2f' % baseline_recall
 print 'Classifier - Precision: %.2f, Recall: %.2f' % (data_precision, data_recall)
