@@ -19,14 +19,14 @@ translation = loadTranslation()
 links = loadLinks()
 
 def getLinks(phrase):
-	phrase = phrase.lower()
+	phrase = phrase.lower().encode('utf8')
 	if not phrase in links: return {}
-	result = links[phrase.lower()]
+	result = links[phrase]
 	result.pop('', 0)
 	return result
 
 def getProbability(phrase):
-	return links[phrase.lower()].get('', 0)
+	return links[phrase.lower().encode('utf8')].get('', 0)
 
 # constants
 minimum_sense_probability = .02
@@ -42,12 +42,12 @@ def features(article, data, target):
 
 	global baseline_judgement
 
-	# links without ambiguity in context (document)
-	clear_links = filter(lambda annotation: len(getLinks(annotation['s'])) == 1 and annotation['u'] in translation, article['annotations'])
+	# links without ambiguity in featurecontext (document)
+	clear_links = filter(lambda annotation: len(getLinks(annotation['s'])) == 1 and annotation['u'].encode('utf8') in translation, article['annotations'])
 
 	# todo parallel weight calculation
 	for link in clear_links:
-		link['u'] = translation[link['u']]
+		link['u'] = translation[link['u'].encode('utf8')]
 
 	for link in clear_links:
 		relatednesses = []
