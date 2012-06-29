@@ -5,15 +5,29 @@ def loadTranslation():
 	return shelve.open(Wikipedia.directory + 'translation.db', 'r')
 
 def loadLinks():
-	return json.load(open(Wikipedia.directory + 'links.txt'))
+	return shelve.open(Wikipedia.directory + 'links.db', 'r')
 
 def loadDestinations():
-	return json.load(open(Wikipedia.directory + 'destinations.txt'))
+	return shelve.open(Wikipedia.directory + 'destinations.db', 'r')
 
 def convertTranslation():
 	db = shelve.open(Wikipedia.directory + 'translation.db')
 	translation = json.load(open(Wikipedia.directory + 'translation.txt'))
 	for key, value in translation.iteritems():
+		db[key.encode('utf8')] = value
+	db.close()
+
+def convertLinks():
+	db = shelve.open(Wikipedia.directory + 'links.db')
+	links = json.load(open(Wikipedia.directory + 'links.txt'))
+	for key, value in links.iteritems():
+		db[key.encode('utf8')] = value
+	db.close()
+
+def convertDestinations():
+	db = shelve.open(Wikipedia.directory + 'destinations.db')
+	destinations = json.load(open(Wikipedia.directory + 'destinations.txt'))
+	for key, value in destinations.iteritems():
 		db[key.encode('utf8')] = value
 	db.close()
 
