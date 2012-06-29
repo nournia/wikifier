@@ -80,11 +80,17 @@ def features(article, data, target):
 			data.append([commonness, relatedness, context_quality])
 			target.append([int(link) == annotation['u'], annotation['o']])
 
+	# show progress bar
+	sys.stdout.write('.')
+	sys.stdout.flush()
 
+
+# load articles
 articles = [json.loads(article) for article in open('data/samples.txt')]
 train_size = int(len(articles) * .8)
 
 # train
+print '\nTraining ',
 baseline_judgement = 0
 data, target = [], []
 for article in articles[:train_size]:
@@ -96,6 +102,7 @@ disambiguator = GaussianNB()
 disambiguator.fit(data, target)
 
 # test
+print '\nTesting ',
 baseline_judgement = 0
 data, target = [], []
 for article in articles[train_size:]:
@@ -136,5 +143,10 @@ judgements = np.array(judgements)
 precision = 1 # that's it
 recall = float(judgements[:, 0].sum()) / len(judgements)
 baseline_recall = float(baseline_judgement) / len(judgements)
+
+print '\nResults:'
+print 'Link Recall: %.2f' % recall
+print 'Baseline Recall: %.2f' % baseline_recall
+print 'Classifier - Precision: %.2f, Recall: %.2f' % (data_precision, data_recall)
 
 # wrong judgements: judgements[judgements[:, 0] == 0]
