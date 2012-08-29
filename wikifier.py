@@ -3,7 +3,8 @@ import numpy as np
 from sklearn.naive_bayes import GaussianNB
 
 from relatedness import WLVM, ESA
-from indexer import loadTranslation, loadLinks
+from indexer import loadTranslation
+from candidates import LinkedCandidates
 
 encyclopedic = True
 if len(sys.argv) == 2 and sys.argv[1] == 'content':
@@ -11,22 +12,14 @@ if len(sys.argv) == 2 and sys.argv[1] == 'content':
 
 if encyclopedic:
 	relatedness_model = WLVM()
+	candidates_model = LinkedCandidates()
 else:
 	relatedness_model = ESA()
+	candidates_model = LinkedCandidates()
+
 
 # read indexes
 translation = loadTranslation()
-links = loadLinks()
-
-def getLinks(phrase):
-	phrase = phrase.lower().encode('utf8')
-	if not phrase in links: return {}
-	result = links[phrase]
-	result.pop('', 0)
-	return result
-
-def getProbability(phrase):
-	return links[phrase.lower().encode('utf8')].get('', 0)
 
 # constants
 minimum_sense_probability = .02
@@ -42,15 +35,20 @@ def features(article, data, target):
 
 	global baseline_judgement
 
+	# translate annotations
 	annotations = []
 	for annotation in article['annotations']:
 		if annotation['u'].encode('utf8') in translation:
 			annotation['u'] = translation[annotation['u'].encode('utf8')]
 			annotations.append(annotation)
 
-	# links without ambiguity in featurecontext (document)
-	clear_links = filter(lambda annotation: len(getLinks(annotation['s'])) == 1, annotations)
+	# extract candidate links
+	for annotation in annotations:
+		annotation['probability'], annotation['links'] = candidates_model.find(annotation['s'])
 
+	# links without ambiguity in context (document)
+	clear_links = candidates_model.clear_links(annotations)
+	
 	# todo parallel weight calculation
 	for link in clear_links:
 		relatednesses = []
@@ -60,10 +58,10 @@ def features(article, data, target):
 		avg_relatedness = avg(relatednesses)
 
 		# link probability effect
-		link['weight'] = avg([avg_relatedness, getProbability(link['s'])])
-	
+		link['weight'] = avg([avg_relatedness, link['probability']])
+
 	for annotation in annotations:
-		candidate_links = getLinks(annotation['s'])
+		candidate_links = annotation['links']
 		all_count = float(sum(candidate_links.values()))
 
 		# filter candidate_links with minimum_sense_probability
