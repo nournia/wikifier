@@ -4,9 +4,9 @@ from sklearn.naive_bayes import GaussianNB
 
 from relatedness import WLVM, ESA
 from indexer import loadTranslation
-from candidates import LinkedCandidates
+from candidates import LinkedCandidates, OccuredCandidates
 
-encyclopedic = True
+encyclopedic = False
 if len(sys.argv) == 2 and sys.argv[1] == 'content':
 	encyclopedic = False
 
@@ -14,8 +14,8 @@ if encyclopedic:
 	relatedness_model = WLVM()
 	candidates_model = LinkedCandidates()
 else:
-	relatedness_model = ESA()
-	candidates_model = LinkedCandidates()
+	relatedness_model = WLVM()
+	candidates_model = OccuredCandidates()
 
 
 # read indexes
