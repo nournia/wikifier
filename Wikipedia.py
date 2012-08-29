@@ -2,10 +2,11 @@ import os, sys, json
 
 class Wikipedia:
 	directory = 'data/'
+	data = 'data/'
 
 	def __init__(self):
 		self.files = []
-		for root, dirs, files in os.walk(self.directory + 'articles'):
+		for root, dirs, files in os.walk(self.data + 'articles'):
 			for name in files:
 				self.files.append(os.path.join(root, name))
 		self.files.sort()
@@ -27,6 +28,7 @@ class Wikipedia:
 			self.fileId += 1
 
 			if self.fileId >= len(self.files):
+				print
 				raise StopIteration
 			else:
 				self.currentFile = open(self.files[self.fileId])

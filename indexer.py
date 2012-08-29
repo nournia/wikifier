@@ -10,34 +10,14 @@ def loadLinks():
 def loadDestinations():
 	return shelve.open(Wikipedia.directory + 'destinations.db', 'r')
 
-def convertTranslation():
-	db = shelve.open(Wikipedia.directory + 'translation.db')
-	translation = json.load(open(Wikipedia.directory + 'translation.txt'))
-	for key, value in translation.iteritems():
-		db[key.encode('utf8')] = value
-	db.close()
-
-def convertLinks():
-	db = shelve.open(Wikipedia.directory + 'links.db')
-	links = json.load(open(Wikipedia.directory + 'links.txt'))
-	for key, value in links.iteritems():
-		db[key.encode('utf8')] = value
-	db.close()
-
-def convertDestinations():
-	db = shelve.open(Wikipedia.directory + 'destinations.db')
-	destinations = json.load(open(Wikipedia.directory + 'destinations.txt'))
-	for key, value in destinations.iteritems():
-		db[key.encode('utf8')] = value
-	db.close()
-
 def indexTranslation():
-	
+
 	translation = {}
 
 	for article in Wikipedia():
 		translation[article['url']] = article['id'][0]
 
+	# write index
 	json.dump(translation, open(Wikipedia.directory + 'translation.txt', 'w'))
 
 def indexLinks():
@@ -90,3 +70,36 @@ def indexLinks():
 	# write indexes
 	json.dump(links, open(Wikipedia.directory + 'links.txt', 'w'))
 	json.dump(destinations, open(Wikipedia.directory + 'destinations.txt', 'w'))
+
+
+def convertTranslation():
+	translation = json.load(open(Wikipedia.directory + 'translation.txt'))
+	db = shelve.open(Wikipedia.directory + 'translation.db')
+	for key, value in translation.iteritems():
+		db[key.encode('utf8')] = value
+	db.close()
+
+def convertLinks():
+	links = json.load(open(Wikipedia.directory + 'links.txt'))
+	db = shelve.open(Wikipedia.directory + 'links.db')
+	for key, value in links.iteritems():
+		db[key.encode('utf8')] = value
+	db.close()
+
+def convertDestinations():
+	destinations = json.load(open(Wikipedia.directory + 'destinations.txt'))
+	db = shelve.open(Wikipedia.directory + 'destinations.db')
+	for key, value in destinations.iteritems():
+		db[key.encode('utf8')] = value
+	db.close()
+
+if __name__ == '__main__':
+	
+	print 'Index Translation '
+	indexTranslation()
+	convertTranslation()
+
+	print 'Index Links '
+	indexLinks()
+	convertLinks()
+	convertDestinations()
