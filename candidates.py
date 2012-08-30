@@ -18,7 +18,7 @@ class LinkedCandidates:
 
 
 import lucene
-from lucene import SimpleFSDirectory, System, File, Document, Field, StandardAnalyzer, IndexSearcher, Version, QueryParser
+from lucene import SimpleFSDirectory, System, File, Document, Field, EnglishAnalyzer, IndexSearcher, Version, QueryParser
 from urllib2 import quote
 
 class OccuredCandidates:
@@ -28,7 +28,7 @@ class OccuredCandidates:
 	def __init__(self):
 		lucene.initVM()
 		self._lversion = Version.LUCENE_30
-		self._analyzer = StandardAnalyzer(self._lversion)
+		self._analyzer = EnglishAnalyzer(self._lversion)
 		self._searcher = IndexSearcher(SimpleFSDirectory(File(self.indexDir)))
 
 		self._translation = loadTranslation()
@@ -40,8 +40,7 @@ class OccuredCandidates:
 		query = QueryParser(self._lversion, 'contents', self._analyzer).parse(query)
 		hits = self._searcher.search(query, self.max_candidates)
 
-		# todo stem query
-		# print "%d documents for '%s':" % (hits.totalHits, query)
+		# if not hits.totalHits: print "%d documents for '%s'" % (hits.totalHits, str(query))
 
 		# todo put article_id in lucene index instead of translating document title
 
