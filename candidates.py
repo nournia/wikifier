@@ -32,8 +32,10 @@ class OccuredCandidates:
 		self._searcher = IndexSearcher(SimpleFSDirectory(File(self.indexDir)))
 
 		self._translation = loadTranslation()
+		self._links = loadLinks()
 
 	def find(self, phrase):
+		phrase = phrase.lower().encode('utf8')
 		query = ' '.join(['+'+ word for word in phrase.split(' ')]);
 		query = QueryParser(self._lversion, 'contents', self._analyzer).parse(query)
 		hits = self._searcher.search(query, self.max_candidates)
@@ -50,8 +52,7 @@ class OccuredCandidates:
 				links[self._translation[title]] = hit.score
 			# else: print title
 
-		# todo fix links probability
-		return 1, links
+		return self._links[phrase].get('', 0), links
 
 	def clear_links(self, annotations):
 		return filter(lambda annotation: annotation['links'] and max(annotation['links'].values()) > 1, annotations)
