@@ -62,7 +62,7 @@ def indexLinks():
 
 	# compute phrase probabilities
 	for phrase in probability:
-		links[phrase][''] = round(float(probability[phrase]) / occurances[phrase], 2)
+		links[phrase]['-1'] = round(float(probability[phrase]) / occurances[phrase], 2)
 
 	for key, value in destinations.iteritems():
 		destinations[key] = list(value)
@@ -83,7 +83,7 @@ def convertLinks():
 	links = json.load(open(Wikipedia.directory + 'links.txt'))
 	db = shelve.open(Wikipedia.directory + 'links.db')
 	for key, value in links.iteritems():
-		db[key.encode('utf8')] = value
+		db[key.encode('utf8')] = dict([(int(k), v) for k, v in value.items()])
 	db.close()
 
 def convertDestinations():

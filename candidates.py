@@ -10,7 +10,7 @@ class LinkedCandidates:
 		phrase = phrase.lower().encode('utf8')
 		if not phrase in self._links: return {}
 		links = self._links[phrase]
-		probability = links.pop('', 0)
+		probability = links.pop(-1, 0)
 		return probability, links
 
 	def clear_links(self, annotations):
@@ -23,7 +23,7 @@ from urllib2 import quote
 
 class OccuredCandidates:
 	indexDir = 'data/index'
-	max_candidates = 10
+	max_candidates = 30
 
 	def __init__(self):
 		lucene.initVM()
@@ -40,7 +40,7 @@ class OccuredCandidates:
 		query = QueryParser(self._lversion, 'contents', self._analyzer).parse(query)
 		hits = self._searcher.search(query, self.max_candidates)
 
-		# if not hits.totalHits: print "%d documents for '%s'" % (hits.totalHits, str(query))
+		# if not hits.totalHits: print "%d documents for '%s'" % (hits.totalHits, str(query)) # potential bug
 
 		# todo put article_id in lucene index instead of translating document title
 
@@ -49,9 +49,9 @@ class OccuredCandidates:
 			title = quote(self._searcher.doc(hit.doc).get("title").encode('utf-8').replace(' ', '_')).replace('%28', '(').replace('%29', ')')
 			if title in self._translation:
 				links[self._translation[title]] = hit.score
-			# else: print title
+			# else: print title # potential bug
 
-		return self._links[phrase].get('', 0), links
+		return self._links[phrase].get(-1, 0), links
 
 	def clear_links(self, annotations):
 		return filter(lambda annotation: annotation['links'] and max(annotation['links'].values()) > 1, annotations)

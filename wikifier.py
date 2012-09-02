@@ -2,21 +2,20 @@ import sys, json, math
 import numpy as np
 from sklearn.naive_bayes import GaussianNB
 
-from relatedness import WLVM, ESA
+from relatedness import WLVMRelatedness, ESARelatedness
 from indexer import loadTranslation
 from candidates import LinkedCandidates, OccuredCandidates
 
-encyclopedic = False
+encyclopedic = True
 if len(sys.argv) == 2 and sys.argv[1] == 'content':
 	encyclopedic = False
 
 if encyclopedic:
-	relatedness_model = WLVM()
+	relatedness_model = WLVMRelatedness()
 	candidates_model = LinkedCandidates()
 else:
-	relatedness_model = WLVM()
+	relatedness_model = WLVMRelatedness()
 	candidates_model = OccuredCandidates()
-
 
 # read indexes
 translation = loadTranslation()
@@ -33,13 +32,13 @@ def features(article, data, target):
 	returns whole article with augmented links
 	"""
 
-	global baseline_judgement
+	global baseline_judgement, stat_all, stat_presence
 
 	# translate annotations
 	annotations = []
 	for annotation in article['annotations']:
 		if annotation['u'].encode('utf8') in translation:
-			annotation['u'] = translation[annotation['u'].encode('utf8')]
+			# annotation['u'] = translation[annotation['u'].encode('utf8')]
 			annotations.append(annotation)
 
 	# extract candidate links
@@ -68,15 +67,18 @@ def features(article, data, target):
 		candidate_links = dict(filter(lambda (link, count): (count / all_count) > minimum_sense_probability, candidate_links.items()))
 		
 		# baseline_judgement as the most common link selection
-		if len(candidate_links) and annotation['u'] == int(max(candidate_links)): baseline_judgement += 1
-		
+		if len(candidate_links) and annotation['u'] == max(candidate_links, key=candidate_links.get): baseline_judgement += 1
+		# presence of solution in candidates
+		if translation[annotation['u'].encode('utf8')] in candidate_links: stat_presence += 1
+		stat_all += 1
+
 		context_quality = sum([clear_link['weight'] for clear_link in clear_links])
 		for link, count in candidate_links.items():
 			commonness = count / all_count
 			relatedness = avg([clear_link['weight'] * relatedness_model.relatedness(link, clear_link['u'])  for clear_link in clear_links]) # weighted average of link relatedness
 
 			data.append([commonness, relatedness, context_quality])
-			target.append([int(link) == annotation['u'], annotation['o']])
+			target.append([link == annotation['u'], annotation['o']])
 
 
 
@@ -101,6 +103,7 @@ def extract_features(articles, data, target):
 total_size = 1000
 articles = [article for article in open('data/samples.txt')]
 train_size = int(len(articles) * .8)
+stat_all = 0; stat_presence = 0
 
 # train
 print 'Train'
@@ -154,6 +157,7 @@ recall = float(judgements[:, 0].sum()) / len(judgements)
 baseline_recall = float(baseline_judgement) / len(judgements)
 
 print 'Results:'
+print 'Solution Presence in Candidates: %.2f' % (float(stat_presence)/stat_all)
 print 'Link Recall: %.2f' % recall
 print 'Baseline Recall: %.2f' % baseline_recall
 print 'Classifier - Precision: %.2f, Recall: %.2f' % (classifier_precision, classifier_recall)
