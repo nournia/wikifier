@@ -92,6 +92,29 @@ def convertDestinations():
 		db[key.encode('utf8')] = value
 	db.close()
 
+
+import xml.etree.cElementTree as et
+
+def resolveRedirects():
+
+	translation = shelve.open(Wikipedia.directory + 'translation.db', 'w')
+	
+	eid, etitle = '', ''
+	for event, element in et.iterparse(Wikipedia.directory + 'redir.xml'):
+		if element.tag == 'id':
+			eid = element.text
+		elif element.tag == 'name':
+			etitle = element.text
+		elif element.tag == 'from':
+			key = etitle.encode('utf-8') if eid == 'unknown' else None
+		elif element.tag == 'to':
+			if eid != 'unknown' and key and not translation.get(key):
+				translation[key] = int(eid)
+				key = etitle.encode('utf-8')
+				if not translation.get(key): translation[key] = int(eid)
+			else:
+				print key, eid, translation.get(key)
+
 import lucene
 from lucene import SimpleFSDirectory, IndexWriter, File, Document, Field, EnglishAnalyzer, Version
 
@@ -123,6 +146,7 @@ if __name__ == '__main__':
 	print 'Index Translation '
 	indexTranslation()
 	convertTranslation()
+	resolveRedirects()
 
 	print 'Index Links '
 	indexLinks()
