@@ -1,5 +1,5 @@
 from Wikipedia import Wikipedia
-import json, collections, shelve
+import json, collections, shelve, os
 
 def loadTranslation():
 	return shelve.open(Wikipedia.directory + 'translation.db', 'r')
@@ -71,7 +71,6 @@ def indexLinks():
 	json.dump(links, open(Wikipedia.directory + 'links.txt', 'w'))
 	json.dump(destinations, open(Wikipedia.directory + 'destinations.txt', 'w'))
 
-
 def convertTranslation():
 	translation = json.load(open(Wikipedia.directory + 'translation.txt'))
 	db = shelve.open(Wikipedia.directory + 'translation.db')
@@ -93,6 +92,32 @@ def convertDestinations():
 		db[key.encode('utf8')] = value
 	db.close()
 
+import lucene
+from lucene import SimpleFSDirectory, IndexWriter, File, Document, Field, EnglishAnalyzer, Version
+
+def indexDocuments():
+	# empty index directory
+	indexDir = Wikipedia.directory + 'index/'
+	for filename in os.listdir(indexDir): os.remove(indexDir + filename)
+
+	# index documents
+	lucene.initVM()
+	version = Version.LUCENE_CURRENT
+	analyzer = EnglishAnalyzer(version)
+	writer = IndexWriter(SimpleFSDirectory(File(indexDir)), analyzer, True, IndexWriter.MaxFieldLength.LIMITED)
+
+	for article in Wikipedia():
+		doc = Document()
+		doc.add(Field('id', str(article['id'][0]), Field.Store.YES, Field.Index.NOT_ANALYZED))
+		doc.add(Field('title', article['url'], Field.Store.YES, Field.Index.NOT_ANALYZED))
+		doc.add(Field('content', article['text'], Field.Store.NO, Field.Index.ANALYZED))
+		writer.addDocument(doc)
+
+	print 'Optimization'
+	writer.optimize()
+	writer.close()
+
+
 if __name__ == '__main__':
 	
 	print 'Index Translation '
@@ -103,3 +128,6 @@ if __name__ == '__main__':
 	indexLinks()
 	convertLinks()
 	convertDestinations()
+	
+	print 'Index Documents'
+	indexDocuments()
