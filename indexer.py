@@ -18,7 +18,10 @@ def indexTranslation():
 		translation[article['url']] = article['id'][0]
 
 	# write index
-	json.dump(translation, open(Wikipedia.directory + 'translation.txt', 'w'))
+	db = shelve.open(Wikipedia.directory + 'translation.db')
+	for key, value in translation.iteritems():
+		db[key.encode('utf8')] = value
+	db.close()
 
 def indexLinks():
 
@@ -68,28 +71,14 @@ def indexLinks():
 		destinations[key] = list(value)
 
 	# write indexes
-	json.dump(links, open(Wikipedia.directory + 'links.txt', 'w'))
-	json.dump(destinations, open(Wikipedia.directory + 'destinations.txt', 'w'))
-
-def convertTranslation():
-	translation = json.load(open(Wikipedia.directory + 'translation.txt'))
-	db = shelve.open(Wikipedia.directory + 'translation.db')
-	for key, value in translation.iteritems():
-		db[key.encode('utf8')] = value
-	db.close()
-
-def convertLinks():
-	links = json.load(open(Wikipedia.directory + 'links.txt'))
 	db = shelve.open(Wikipedia.directory + 'links.db')
 	for key, value in links.iteritems():
 		db[key.encode('utf8')] = dict([(int(k), v) for k, v in value.items()])
 	db.close()
 
-def convertDestinations():
-	destinations = json.load(open(Wikipedia.directory + 'destinations.txt'))
 	db = shelve.open(Wikipedia.directory + 'destinations.db')
 	for key, value in destinations.iteritems():
-		db[key.encode('utf8')] = value
+		db[str(key)] = value
 	db.close()
 
 
@@ -143,15 +132,12 @@ def indexDocuments():
 
 if __name__ == '__main__':
 	
-	print 'Index Translation '
+	print 'Index Translation'
 	indexTranslation()
-	convertTranslation()
 	resolveRedirects()
 
-	print 'Index Links '
+	print 'Index Links'
 	indexLinks()
-	convertLinks()
-	convertDestinations()
 	
 	print 'Index Documents'
 	indexDocuments()

@@ -37,8 +37,8 @@ def features(article, data, target):
 	# translate annotations
 	annotations = []
 	for annotation in article['annotations']:
-		if annotation['u'].encode('utf8') in translation:
-			# annotation['u'] = translation[annotation['u'].encode('utf8')]
+		if str(annotation['u']) in translation:
+			annotation['u'] = translation[str(annotation['u'])]
 			annotations.append(annotation)
 
 	# extract candidate links
@@ -69,7 +69,7 @@ def features(article, data, target):
 		# baseline_judgement as the most common link selection
 		if len(candidate_links) and annotation['u'] == max(candidate_links, key=candidate_links.get): baseline_judgement += 1
 		# presence of solution in candidates
-		if translation[annotation['u'].encode('utf8')] in candidate_links: stat_presence += 1
+		if annotation['u'] in candidate_links: stat_presence += 1
 		stat_all += 1
 
 		context_quality = sum([clear_link['weight'] for clear_link in clear_links])
