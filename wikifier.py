@@ -152,8 +152,12 @@ for index in indices:
 	judgements.append([link[mi][0] == 1, link[mi][3]])
 judgements = np.array(judgements)
 
-precision = 1 # that's it
-recall = float(judgements[:, 0].sum()) / len(judgements)
+
+tp = sum(judgements[:, 0] == 1)
+fp = sum(judgements[:, 0] == 0)
+fn = fp
+precision = float(tp) / (tp + fp)
+recall = float(tp) / (tp + fn)
 baseline_recall = float(baseline_judgement) / len(judgements)
 
 print 'Results:'
