@@ -4,7 +4,7 @@ import json, random
 
 destinations = loadDestinations()
 
-minLinks = 100
+minLinks = 50
 articles = [int(key) for key, value in destinations.items() if len(value) > minLinks]
 
 samples = 1000
